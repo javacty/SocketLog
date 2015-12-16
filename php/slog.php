@@ -44,6 +44,24 @@ class Slog
         }
     }
 
+	//add by javac:
+	//移除数组里的空值元素
+    public function array_remove_empty(& $arr, $trim = true)   
+    {   
+        foreach ($arr as $key => $value) {   
+            if (is_array($value)) {   
+                self::array_remove_empty($arr[$key]);   
+            } else {   
+                $value = trim($value);   
+                if ($value == '') {   
+                    unset($arr[$key]);   
+                } elseif ($trim) {   
+                    $arr[$key] = $value;   
+                }      
+            }         
+        }   
+    }
+
    public static function sql($sql,$link)
     {
         if(is_object($link) && 'mysqli'==get_class($link))
@@ -452,6 +470,11 @@ class Slog
             'logs'=>self::$logs,
             'force_client_id'=>$force_client_id,
         );
+
+		//add by javac
+        //json_encode之前移除空值元素，避免出错
+        self::array_remove_empty($logs,true);
+        
         $msg=@json_encode($logs);
         $address='/'.$client_id; //将client_id作为地址， server端通过地址判断将日志发布给谁
         self::send(self::getConfig('host'),$msg,$address);
